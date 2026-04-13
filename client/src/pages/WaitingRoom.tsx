@@ -110,6 +110,13 @@ const WaitingRoom: React.FC = () => {
           <p>将房间密码发送给好友，好友输入密码即可加入</p>
         </div>
 
+        {/* 当前用户昵称和执棋颜色提示 */}
+        {player && (
+          <div className="my-info-banner">
+            您的昵称是【{player.nickname}】，本次对局由您执{player.color === 'black' ? '黑先行' : '白后行'}
+          </div>
+        )}
+
         <div className="players-status">
           <div className={`player-slot ${isHost ? 'black' : 'white'} ${myPlayer?.isReady ? 'ready' : ''}`}>
             <div className="player-color">{isHost ? '黑方' : '白方'}</div>

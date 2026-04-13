@@ -7,9 +7,10 @@ interface ChatProps {
   messages: ChatMessage[];
   onSendMessage: (content: string) => void;
   disabled?: boolean;
+  currentPlayerId?: string;
 }
 
-const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, disabled = false }) => {
+const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, disabled = false, currentPlayerId }) => {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -38,14 +39,33 @@ const Chat: React.FC<ChatProps> = ({ messages, onSendMessage, disabled = false }
     return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
   };
 
+  // 判断是否为当前用户发送的消息
+  const isCurrentUser = (msg: ChatMessage) => {
+    return currentPlayerId && msg.senderId === currentPlayerId;
+  };
+
   return (
     <div className="chat-container">
       <div className="chat-messages">
         {messages.map((msg) => (
-          <div key={msg.id} className="chat-message">
-            <span className="chat-nickname">{msg.senderNickname}:</span>
-            <span className="chat-content">{msg.content}</span>
-            <span className="chat-time">{formatTime(msg.timestamp)}</span>
+          <div key={msg.id} className={`chat-message ${msg.senderId === 'system' ? 'system-message' : ''}`}>
+            {msg.senderId === 'system' ? (
+              // 系统消息：[系统] + 内容 + 时间戳
+              <div className="system-msg-inner">
+                <span className="system-tag">[系统]</span>
+                <span className="system-content">{msg.content}</span>
+                <span className="chat-time">{formatTime(msg.timestamp)}</span>
+              </div>
+            ) : (
+              // 用户消息：[我] 或 [昵称] + 内容 + 时间戳
+              <>
+                <span className="chat-nickname">
+                  {isCurrentUser(msg) ? '[我]' : `[${msg.senderNickname}]`}
+                </span>
+                <span className="chat-content">{msg.content}</span>
+                <span className="chat-time">{formatTime(msg.timestamp)}</span>
+              </>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />

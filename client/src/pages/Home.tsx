@@ -33,8 +33,12 @@ const Home: React.FC = () => {
     setError('');
 
     socketService.createRoom(roomName.trim(), (room: Room) => {
-      // 存储房间信息
+      // 存储房间信息和房主玩家信息
       localStorage.setItem('currentRoom', JSON.stringify(room));
+      // 房主信息存储到 currentPlayer，确保后续页面能识别身份
+      if (room.players.host) {
+        localStorage.setItem('currentPlayer', JSON.stringify(room.players.host));
+      }
       navigate(`/room/${room.password}`);
     });
   };

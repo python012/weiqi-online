@@ -40,6 +40,36 @@ const Game: React.FC = () => {
       setMyColor(p.color);
     }
 
+    // 游戏开始时添加系统提示消息
+    if (savedRoom && savedPlayer) {
+      const parsedRoom: Room = JSON.parse(savedRoom);
+      const parsedPlayer: Player = JSON.parse(savedPlayer);
+      if (parsedRoom.status === 'playing') {
+        const isBlack = parsedPlayer.color === 'black';
+        const colorText = isBlack ? '黑' : '白';
+        const now = Date.now();
+        const sysMessages: ChatMessage[] = [
+          {
+            id: `sys_name_${now}`,
+            senderId: 'system',
+            senderNickname: '系统',
+            content: `您的昵称是：${parsedPlayer.nickname}`,
+            timestamp: now,
+          },
+          {
+            id: `sys_start_${now}`,
+            senderId: 'system',
+            senderNickname: '系统',
+            content: isBlack
+              ? `对局开始，本次对局由您执黑，请您开始斟酌落子`
+              : `对局开始，本次对局由您执白，现在开始等待对方落子`,
+            timestamp: now,
+          },
+        ];
+        setMessages(sysMessages);
+      }
+    }
+
     // Socket 事件监听
     const handleRoomUpdated = (updatedRoom: Room) => {
       setRoom(updatedRoom);
@@ -188,11 +218,17 @@ const Game: React.FC = () => {
 
   // 返回大厅
   const handleLeave = useCallback(() => {
+    if (room?.status === 'playing') {
+      const confirmed = confirm(
+        `对局正在进行中！\n\n您可以通过对局密码【${room.password}】再次进入对局室。\n\n确定要离开吗？`
+      );
+      if (!confirmed) return;
+    }
     socketService.leaveRoom(() => {});
     localStorage.removeItem('currentRoom');
     localStorage.removeItem('currentPlayer');
     navigate('/');
-  }, [navigate]);
+  }, [navigate, room]);
 
   if (!room) {
     return <div className="game-loading">加载中...</div>;
@@ -205,7 +241,9 @@ const Game: React.FC = () => {
     <div className="game-container">
       <div className="game-header">
         <div className="game-room-info">
-          <h2 className="game-title">{room.name}</h2>
+          <h2 className="game-title">
+            {room.players.host?.nickname || '等待中'}（黑） vs {room.players.guest?.nickname || '等待中'}（白）
+          </h2>
           <span className="game-status">
             {room.status === 'playing' ? '对局中' : room.status === 'finished' ? '已结束' : '等待中'}
           </span>
@@ -264,6 +302,7 @@ const Game: React.FC = () => {
             messages={messages}
             onSendMessage={handleSendMessage}
             disabled={room.status === 'finished'}
+            currentPlayerId={player?.id}
           />
         </div>
       </div>

@@ -37,6 +37,36 @@
   margin-left: 8px;
 }
 
+/* 系统消息样式 */
+.system-message {
+  background: #fff8e1;
+  border-left: 3px solid #ffa000;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.system-msg-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.system-tag {
+  color: #e65100;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.system-content {
+  color: #e65100;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
 .chat-input-area {
   display: flex;
   gap: 8px;

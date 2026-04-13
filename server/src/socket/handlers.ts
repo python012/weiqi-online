@@ -14,14 +14,24 @@ function generatePlayerId(): string {
 }
 
 /**
- * 生成随机昵称
+ * 生成随机昵称：正向积极的形容词 + 可爱的小动物
  */
 function generateNickname(): string {
-  const adjectives = ['快乐', '聪明', '勇敢', '冷静', '热情', '悠闲', '勤奋', '自信'];
-  const nouns = ['棋手', '玩家', '高手', '大师', '新人', '棋子', '棋盘', '围棋'];
+  const adjectives = [
+    '快乐的', '聪明的', '勇敢的', '温柔的', '活泼的',
+    '善良的', '可爱的', '机智的', '调皮的', '开心的',
+    '认真的', '俏皮的', '沉稳的', '灵巧的', '淡定的',
+    '乐观的', '勇敢的', '安静的', '爱笑的', '勤劳的'
+  ];
+  const animals = [
+    '小熊', '小兔', '小鹿', '小猫', '小狐狸',
+    '小松鼠', '小企鹅', '小海豚', '小浣熊', '小熊猫',
+    '小考拉', '小水獭', '小猫头鹰', '小刺猬', '小鲸鱼',
+    '小柴犬', '小仓鼠', '小树懒', '小斑马', '小海豹'
+  ];
   const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  return `${adj}${noun}`;
+  const animal = animals[Math.floor(Math.random() * animals.length)];
+  return `${adj}${animal}`;
 }
 
 export function setupSocketHandlers(io: Server): void {
