@@ -1,0 +1,46 @@
+# 依赖
+node_modules/
+
+# 构建输出
+dist/
+build/
+.next/
+out/
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 测试
+coverage/
+
+# 临时文件
+*.tmp
+*.temp
+
+# 客户端特定
+client/dist/
+client/node_modules/
+
+# 服务器特定
+server/dist/
+server/node_modules/
+
+REQUIREMENTS.md

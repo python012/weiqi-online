@@ -1,0 +1,150 @@
+/* 复盘页面样式 */
+.review-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.review-title h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.review-leave-btn {
+  padding: 8px 16px;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.review-leave-btn:hover {
+  background: #f5f5f5;
+}
+
+.review-main {
+  flex: 1;
+  display: flex;
+  padding: 24px;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.review-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.review-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+}
+
+.review-btn {
+  padding: 8px 16px;
+  background: #333;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.review-btn:hover:not(:disabled) {
+  background: #555;
+}
+
+.review-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.step-info {
+  min-width: 80px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+
+.review-right {
+  width: 280px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.move-list h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.move-items {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.move-item {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.move-item:hover {
+  background: #f5f5f5;
+}
+
+.move-item.active {
+  background: #e8f5e9;
+}
+
+.move-item .move-number {
+  min-width: 24px;
+  color: #999;
+  font-size: 13px;
+}
+
+.move-item .move-color {
+  font-size: 13px;
+  color: #666;
+}
+
+.move-item .move-position {
+  font-size: 13px;
+  color: #333;
+}
+
+.review-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-size: 18px;
+  color: #666;
+}

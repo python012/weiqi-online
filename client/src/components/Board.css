@@ -1,0 +1,89 @@
+/* 棋盘样式 */
+.go-board {
+  background: #DEB887;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  user-select: none;
+}
+
+.go-board.disabled {
+  cursor: not-allowed;
+}
+
+/* 棋盘背景 */
+.board-bg {
+  fill: #DEB887;
+}
+
+/* 格子线 */
+.grid-lines line {
+  stroke: #333;
+  stroke-width: 1;
+}
+
+/* 星位 */
+.star-point {
+  fill: #333;
+}
+
+/* 棋子 */
+.stone {
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+.stone.black {
+  fill: #1a1a1a;
+}
+
+.stone.white {
+  fill: #f0f0f0;
+}
+
+.stone.last-move.black {
+  stroke: #f0f0f0;
+  stroke-width: 2;
+}
+
+.stone.last-move.white {
+  stroke: #1a1a1a;
+  stroke-width: 2;
+}
+
+/* 棋谱序号 */
+.move-number {
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.move-number.black {
+  fill: #f0f0f0;
+}
+
+.move-number.white {
+  fill: #1a1a1a;
+}
+
+/* 悬停预览 */
+.stone-preview {
+  fill-opacity: 0.5;
+}
+
+.stone-preview.black.valid {
+  fill: #1a1a1a;
+}
+
+.stone-preview.white.valid {
+  fill: #f0f0f0;
+}
+
+.stone-preview.invalid {
+  fill: #ff4444;
+  fill-opacity: 0.3;
+}
+
+/* 禁入点标记 */
+.invalid-marker {
+  fill: #ff4444;
+  fill-opacity: 0.4;
+}
