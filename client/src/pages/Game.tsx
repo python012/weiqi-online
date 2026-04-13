@@ -1,7 +1,7 @@
 // 对局页面
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { socketService } from '../services/socket';
+import { realtimeService } from '../services/supabase';
 import { Room, Player, Move, ChatMessage, Position, StoneColor, GAME_CONFIG } from '../types';
 import Board from '../components/Board';
 import Chat from '../components/Chat';
@@ -76,15 +76,14 @@ const Game: React.FC = () => {
       localStorage.setItem('currentRoom', JSON.stringify(updatedRoom));
     };
 
-    const handleMove = (move: Move, updatedRoom: Room) => {
-      setRoom(updatedRoom);
-      localStorage.setItem('currentRoom', JSON.stringify(updatedRoom));
+    const handleMove = (data: { move: Move; room: Room }) => {
+      setRoom(data.room);
+      localStorage.setItem('currentRoom', JSON.stringify(data.room));
       
-      // 更新提子统计
-      if (move.capturedStones && move.capturedStones.length > 0) {
+      if (data.move.capturedStones && data.move.capturedStones.length > 0) {
         setCapturedStones(prev => ({
           ...prev,
-          [move.color]: prev[move.color] + move.capturedStones!.length
+          [data.move.color]: prev[data.move.color] + data.move.capturedStones!.length
         }));
       }
     };
@@ -116,20 +115,16 @@ const Game: React.FC = () => {
       setMessages(prev => [...prev, message]);
     };
 
-    socketService.onRoomUpdated(handleRoomUpdated);
-    socketService.onMove(handleMove);
-    socketService.onPass(handlePass);
-    socketService.onResign(handleResign);
-    socketService.onGameEnd(handleGameEnd);
-    socketService.onChatMessage(handleChatMessage);
+    realtimeService.onRoomUpdated(handleRoomUpdated);
+    realtimeService.onMove(handleMove);
+    realtimeService.onGameEnd(handleGameEnd);
+    realtimeService.onChatMessage(handleChatMessage);
 
     return () => {
-      socketService.offRoomUpdated(handleRoomUpdated);
-      socketService.offMove(handleMove);
-      socketService.offPass(handlePass);
-      socketService.offResign(handleResign);
-      socketService.offGameEnd(handleGameEnd);
-      socketService.offChatMessage(handleChatMessage);
+      realtimeService.offRoomUpdated(handleRoomUpdated);
+      realtimeService.offMove(handleMove);
+      realtimeService.offGameEnd(handleGameEnd);
+      realtimeService.offChatMessage(handleChatMessage);
     };
   }, [password, navigate]);
 
@@ -181,34 +176,74 @@ const Game: React.FC = () => {
   }, [room?.status]);
 
   // 超时判负处理
-  const handleTimeout = useCallback((loserColor: StoneColor) => {
-    socketService.resign(() => {});
-  }, []);
-
-  // 落子
-  const handleMove = useCallback((position: Position) => {
-    socketService.makeMove(position, (success, error) => {
-      if (!success && error) {
-        console.error('落子失败:', error);
-      }
-    });
-  }, []);
-
-  // Pass
-  const handlePass = useCallback(() => {
-    socketService.pass(() => {});
-  }, []);
-
-  // 认输
-  const handleResign = useCallback(() => {
-    if (confirm('确定要认输吗？')) {
-      socketService.resign(() => {});
+  const handleTimeout = useCallback(async (loserColor: StoneColor) => {
+    const player = JSON.parse(localStorage.getItem('currentPlayer') || '{}');
+    const room = JSON.parse(localStorage.getItem('currentRoom') || '{}');
+    if (player.id && room.password) {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/game/resign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: player.id, password: room.password }),
+      });
     }
   }, []);
 
+  // 落子
+  const handleMove = useCallback(async (position: Position) => {
+    const player = JSON.parse(localStorage.getItem('currentPlayer') || '{}');
+    const room = JSON.parse(localStorage.getItem('currentRoom') || '{}');
+    if (!player.id || !room.password) return;
+
+    try {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/game/move`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: player.id, password: room.password, position }),
+      });
+    } catch (err) {
+      console.error('落子失败:', err);
+    }
+  }, []);
+
+  // Pass
+  const handlePass = useCallback(async () => {
+    const player = JSON.parse(localStorage.getItem('currentPlayer') || '{}');
+    const room = JSON.parse(localStorage.getItem('currentRoom') || '{}');
+    if (!player.id || !room.password) return;
+
+    await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/game/pass`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: player.id, password: room.password }),
+    });
+  }, []);
+
+  // 认输
+  const handleResign = useCallback(async () => {
+    if (!confirm('确定要认输吗？')) return;
+
+    const player = JSON.parse(localStorage.getItem('currentPlayer') || '{}');
+    const room = JSON.parse(localStorage.getItem('currentRoom') || '{}');
+    if (!player.id || !room.password) return;
+
+    await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/game/resign`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: player.id, password: room.password }),
+    });
+  }, []);
+
   // 发送消息
-  const handleSendMessage = useCallback((content: string) => {
-    socketService.sendChatMessage(content, () => {});
+  const handleSendMessage = useCallback(async (content: string) => {
+    const player = JSON.parse(localStorage.getItem('currentPlayer') || '{}');
+    const room = JSON.parse(localStorage.getItem('currentRoom') || '{}');
+    if (!player.id || !room.password) return;
+
+    await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/chat/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ playerId: player.id, password: room.password, content }),
+    });
   }, []);
 
   // 重新开始（复盘）
@@ -217,14 +252,14 @@ const Game: React.FC = () => {
   }, [password, navigate]);
 
   // 返回大厅
-  const handleLeave = useCallback(() => {
+  const handleLeave = useCallback(async () => {
     if (room?.status === 'playing') {
       const confirmed = confirm(
         `对局正在进行中！\n\n您可以通过对局密码【${room.password}】再次进入对局室。\n\n确定要离开吗？`
       );
       if (!confirmed) return;
     }
-    socketService.leaveRoom(() => {});
+    realtimeService.leaveRoom();
     localStorage.removeItem('currentRoom');
     localStorage.removeItem('currentPlayer');
     navigate('/');

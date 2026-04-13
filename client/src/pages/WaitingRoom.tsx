@@ -1,7 +1,7 @@
 // 等待房间页面
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { socketService } from '../services/socket';
+import { realtimeService } from '../services/supabase';
 import { Room, Player } from '../types';
 import './WaitingRoom.css';
 
@@ -36,12 +36,12 @@ const WaitingRoom: React.FC = () => {
       localStorage.setItem('currentRoom', JSON.stringify(updatedRoom));
     };
 
-    const handlePlayerJoined = (newPlayer: Player) => {
-      // 更新本地玩家信息
+    const handlePlayerJoined = (players: Player[]) => {
       const savedPlayer = localStorage.getItem('currentPlayer');
       if (savedPlayer) {
         const currentPlayer = JSON.parse(savedPlayer);
-        if (!currentPlayer.color && newPlayer.color) {
+        const newPlayer = players.find(p => p.id !== currentPlayer.id);
+        if (!currentPlayer.color && newPlayer?.color) {
           currentPlayer.color = newPlayer.color;
           currentPlayer.role = newPlayer.role;
           localStorage.setItem('currentPlayer', JSON.stringify(currentPlayer));
@@ -55,14 +55,14 @@ const WaitingRoom: React.FC = () => {
       navigate(`/game/${password}`);
     };
 
-    socketService.onRoomUpdated(handleRoomUpdated);
-    socketService.onPlayerJoined(handlePlayerJoined);
-    socketService.onGameStart(handleGameStart);
+    realtimeService.onRoomUpdated(handleRoomUpdated);
+    realtimeService.onPlayerJoined(handlePlayerJoined);
+    realtimeService.onGameStart(handleGameStart);
 
     return () => {
-      socketService.offRoomUpdated(handleRoomUpdated);
-      socketService.offPlayerJoined(handlePlayerJoined);
-      socketService.offGameStart(handleGameStart);
+      realtimeService.offRoomUpdated(handleRoomUpdated);
+      realtimeService.offPlayerJoined(handlePlayerJoined);
+      realtimeService.offGameStart(handleGameStart);
     };
   }, [password, navigate]);
 
@@ -76,8 +76,16 @@ const WaitingRoom: React.FC = () => {
   };
 
   // 确认开始
-  const handleReady = () => {
-    socketService.setReady(() => {});
+  const handleReady = async () => {
+    const player = JSON.parse(localStorage.getItem('currentPlayer') || '{}');
+    const room = JSON.parse(localStorage.getItem('currentRoom') || '{}');
+    if (player.id && room.password) {
+      await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/room/ready`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: player.id, password: room.password }),
+      });
+    }
   };
 
   if (!room) {

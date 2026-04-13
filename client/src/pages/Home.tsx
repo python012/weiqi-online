@@ -1,7 +1,7 @@
 // 主页 - 创建/加入房间
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { socketService } from '../services/socket';
+import { realtimeService, supabase } from '../services/supabase';
 import { Room, Player } from '../types';
 import './Home.css';
 
@@ -14,16 +14,16 @@ const Home: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // 连接Socket服务
-    socketService.connect();
+    // 连接实时服务
+    realtimeService.connect();
 
     return () => {
-      // 清理连接
+      realtimeService.disconnect();
     };
   }, []);
 
   // 创建房间
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (!roomName.trim()) {
       setError('请输入房间名称');
       return;
@@ -32,19 +32,21 @@ const Home: React.FC = () => {
     setLoading(true);
     setError('');
 
-    socketService.createRoom(roomName.trim(), (room: Room) => {
-      // 存储房间信息和房主玩家信息
+    try {
+      const room = await realtimeService.createRoom(roomName.trim());
       localStorage.setItem('currentRoom', JSON.stringify(room));
-      // 房主信息存储到 currentPlayer，确保后续页面能识别身份
       if (room.players.host) {
         localStorage.setItem('currentPlayer', JSON.stringify(room.players.host));
       }
       navigate(`/room/${room.password}`);
-    });
+    } catch (err: any) {
+      setError(err.message || '创建房间失败');
+      setLoading(false);
+    }
   };
 
   // 加入房间
-  const handleJoin = () => {
+  const handleJoin = async () => {
     if (!password.trim()) {
       setError('请输入房间密码');
       return;
@@ -53,19 +55,15 @@ const Home: React.FC = () => {
     setLoading(true);
     setError('');
 
-    socketService.joinRoom(password.trim().toUpperCase(), (room, player, error) => {
-      if (error) {
-        setError(error);
-        setLoading(false);
-        return;
-      }
-
-      if (room && player) {
-        localStorage.setItem('currentRoom', JSON.stringify(room));
-        localStorage.setItem('currentPlayer', JSON.stringify(player));
-        navigate(`/room/${room.password}`);
-      }
-    });
+    try {
+      const { room, player } = await realtimeService.joinRoom(password.trim().toUpperCase());
+      localStorage.setItem('currentRoom', JSON.stringify(room));
+      localStorage.setItem('currentPlayer', JSON.stringify(player));
+      navigate(`/room/${room.password}`);
+    } catch (err: any) {
+      setError(err.message || '加入房间失败');
+      setLoading(false);
+    }
   };
 
   return (
